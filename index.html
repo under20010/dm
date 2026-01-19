@@ -374,6 +374,18 @@
     .tournament-summary-row {
       cursor: pointer;
     }
+    /* 選択済み（.active）のボタンは、どの状態でも見た目をそろえる */
+.tapbtn.active,
+.tapbtn.active:hover,
+.tapbtn.active:active,
+.tapbtn.active:focus,
+.tapbtn.active:focus-visible{
+  background:#111827;
+  color:#ffffff;
+  border-color:#111827;
+  transform:none;   /* 押した瞬間の浮き沈みも消す */
+  outline:none;     /* 青い枠が出るのも消す */
+}
   </style>
 </head>
 
