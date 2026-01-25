@@ -367,25 +367,24 @@
       }
     }
 
-    /* 大会一覧 折りたたみ */
     .tournament-collapsed .match-date-group {
       display: none;
     }
     .tournament-summary-row {
       cursor: pointer;
     }
-    /* 選択済み（.active）のボタンは、どの状態でも見た目をそろえる */
-.tapbtn.active,
-.tapbtn.active:hover,
-.tapbtn.active:active,
-.tapbtn.active:focus,
-.tapbtn.active:focus-visible{
-  background:#111827;
-  color:#ffffff;
-  border-color:#111827;
-  transform:none;   /* 押した瞬間の浮き沈みも消す */
-  outline:none;     /* 青い枠が出るのも消す */
-}
+
+    .tapbtn.active,
+    .tapbtn.active:hover,
+    .tapbtn.active:active,
+    .tapbtn.active:focus,
+    .tapbtn.active:focus-visible{
+      background:#111827;
+      color:#ffffff;
+      border-color:#111827;
+      transform:none;
+      outline:none;
+    }
   </style>
 </head>
 
@@ -396,7 +395,6 @@
 
 <main>
 
-  <!-- 1. 対戦入力 -->
   <section class="section">
     <h2>対戦を記録</h2>
 
@@ -490,7 +488,6 @@
     <div id="editStatus" class="small"></div>
   </section>
 
-  <!-- 2. 対戦結果 -->
   <section class="section">
     <h2>対戦結果</h2>
 
@@ -510,7 +507,6 @@
     <div id="matchList" class="small"></div>
   </section>
 
-  <!-- 3. 勝率計算 -->
   <section class="section">
     <h2>勝率計算（期間で集計）</h2>
 
@@ -529,7 +525,6 @@
     <div id="periodResult" class="stats"></div>
   </section>
 
-  <!-- 4. バックアップ・データ削除 -->
   <section class="section">
     <h2>バックアップ・データ削除</h2>
 
@@ -556,7 +551,6 @@
     </div>
   </section>
 
-  <!-- 5. クラウドバックアップ -->
   <section class="section">
     <h2>クラウドバックアップ（Google ログイン）</h2>
 
@@ -599,9 +593,6 @@
 </div>
 
 <script>
-/* =========================
-   ローカル保存用 定数・ユーティリティ
-========================= */
 const STORAGE_KEY = "dm_match_tracker_data_v11";
 const LAST_CLOUD_SAVE_KEY = "dm_match_last_cloud_save_at";
 
@@ -701,7 +692,20 @@ function getLastTournamentName(){
   return last.tournamentName || "";
 }
 
-/* 自動引き継ぎ */
+/* セレクトの値からボタンの active 状態を合わせる共通処理 */
+function syncTapButtonsFromSelects(){
+  document.querySelectorAll(".tapbtn").forEach(btn => {
+    const selectId = btn.dataset.setSelect;
+    const value = btn.dataset.value;
+    const select = selectId ? document.getElementById(selectId) : null;
+    if(select && select.value === value){
+      btn.classList.add("active");
+    }else{
+      btn.classList.remove("active");
+    }
+  });
+}
+
 function applyCarryOverIfPossible(){
   if(editingMatchId) return;
 
@@ -733,7 +737,6 @@ function applyCarryOverIfPossible(){
   }
 }
 
-/* 統計 */
 function overallStats(){
   let total=0, win=0, lose=0, first=0;
   for(const m of appData.matches){
@@ -745,9 +748,6 @@ function overallStats(){
   return { total, win, lose, first };
 }
 
-/* =========================
-   大会ごとの結果（折りたたみ）
-========================= */
 function renderTournamentSummary(){
   const div = document.getElementById("tournamentSummary");
   div.innerHTML = "";
@@ -824,7 +824,6 @@ function renderTournamentSummary(){
   });
 }
 
-/* 大会の対戦一覧（折りたたみ内に描画） */
 function renderMatchListForTournament(key, container){
   container.innerHTML = "";
 
@@ -977,7 +976,6 @@ function renderMatchListForTournament(key, container){
   setupImageOverlayHandlers();
 }
 
-/* 全体統計の描画 */
 function renderMatches(){
   const s = overallStats();
   const winRate = percent(s.win, s.total);
@@ -1004,7 +1002,6 @@ function renderMatches(){
   }
 }
 
-/* 編集モード */
 function fillFormForEdit(m){
   document.getElementById("matchDate").value = m.matchDate;
   document.getElementById("tournamentName").value = m.tournamentName;
@@ -1027,6 +1024,8 @@ function fillFormForEdit(m){
   }
 
   document.getElementById("matchDeckImage").value = "";
+
+  syncTapButtonsFromSelects();
 }
 function clearForm(){
   editingMatchId = null;
@@ -1047,6 +1046,8 @@ function clearForm(){
   document.getElementById("editStatus").textContent = "";
   document.getElementById("addMatchButton").textContent = "対戦を追加";
   document.getElementById("cancelEditButton").style.display = "none";
+
+  syncTapButtonsFromSelects();
 }
 function startEdit(m){
   editingMatchId = m.id;
@@ -1061,7 +1062,6 @@ function startEdit(m){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-/* 対戦追加・更新 */
 document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById("addMatchButton").addEventListener("click", ()=>{
     let matchDateInput = document.getElementById("matchDate");
@@ -1180,10 +1180,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   });
 
   document.getElementById("cancelEditButton").addEventListener("click", clearForm);
-});
 
-/* 期間集計 */
-document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById("calcPeriodButton").addEventListener("click", ()=>{
     const start = document.getElementById("periodStart").value;
     const end = document.getElementById("periodEnd").value;
@@ -1221,10 +1218,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
       `ゲーム勝率: 勝ち ${win} / ${total}` + (winRate!=null?`（${winRate}%）`:"") + `<br>`+
       `先手率: 先手 ${first} / ${total}` + (firstRate!=null?`（${firstRate}%）`:"");
   });
-});
 
-/* バックアップ書き出し */
-document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById("exportButton").addEventListener("click", ()=>{
     const payload = {
       version: 11,
@@ -1288,9 +1282,33 @@ document.addEventListener("DOMContentLoaded", ()=>{
     clearForm();
     document.getElementById("periodResult").textContent = "";
   });
+
+  document.getElementById("matchDate").addEventListener("change", applyCarryOverIfPossible);
+  document.getElementById("tournamentName").addEventListener("input", applyCarryOverIfPossible);
+
+  ["matchFirstSecond","matchResult"].forEach(id=>{
+    const sel = document.getElementById(id);
+    sel.addEventListener("change", syncTapButtonsFromSelects);
+  });
+
+  document.querySelectorAll(".tapbtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const selectId = btn.dataset.setSelect;
+      const value = btn.dataset.value;
+      if (!selectId) return;
+
+      const select = document.getElementById(selectId);
+      if (!select) return;
+
+      select.value = value;
+      syncTapButtonsFromSelects();
+    });
+  });
+
+  renderMatches();
+  syncTapButtonsFromSelects();
 });
 
-/* 画像オーバーレイ */
 function setupImageOverlayHandlers(){
   const overlay = document.getElementById("imageOverlay");
   const overlayImg = document.getElementById("imageOverlayImg");
@@ -1316,9 +1334,6 @@ function setupImageOverlayHandlers(){
   });
 }
 
-/* =========================
-   Supabase 認証・クラウド保存
-========================= */
 const SUPABASE_URL = "https://fhtgpmaofiiexppowvqd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZodGdwbWFvZmlpZXhwcG93dnFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0OTk3OTIsImV4cCI6MjA4NDA3NTc5Mn0.qgElUy71dfguW99f6gztRwXPuEFc87mV6oYW3AmCC9M";
 
@@ -1560,8 +1575,7 @@ async function handleCloudLoad(){
   }
 }
 
-/* 初期化 */
-function init(){
+window.addEventListener("load", ()=>{
   document.getElementById("matchDate").value = todayDate();
   document.getElementById("matchStage").value = "予選";
 
@@ -1570,48 +1584,16 @@ function init(){
     document.getElementById("tournamentName").value = lastName;
   }
 
-  document.getElementById("matchDate").addEventListener("change", applyCarryOverIfPossible);
-  document.getElementById("tournamentName").addEventListener("input", applyCarryOverIfPossible);
-
   renderMatches();
+  syncTapButtonsFromSelects();
+  loadLastCloudSaveFromStorage();
+  initSupabaseAuth();
 
   document.getElementById("googleLoginButton").addEventListener("click", handleGoogleLogin);
   document.getElementById("googleLogoutButton").addEventListener("click", handleGoogleLogout);
   document.getElementById("cloudSaveButton").addEventListener("click", handleCloudSave);
   document.getElementById("cloudLoadButton").addEventListener("click", handleCloudLoad);
-
-  loadLastCloudSaveFromStorage();
-  initSupabaseAuth();
-}
-/* 先手/後手・勝敗のタップボタン用（セレクトに反映） */
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".tapbtn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const selectId = btn.dataset.setSelect;
-      const value = btn.dataset.value;
-      if (!selectId) return;
-
-      const select = document.getElementById(selectId);
-      if (!select) return;
-
-      // セレクトの値を更新
-      select.value = value;
-
-      // 同じグループ内のボタンの active をリセット
-      const group = btn.parentElement;  // div.tap2
-      if (group) {
-        group.querySelectorAll(".tapbtn").forEach(b => {
-          b.classList.remove("active");
-        });
-      }
-
-      // 押したボタンを active に
-      btn.classList.add("active");
-    });
-  });
 });
-  
-window.addEventListener("load", init);
 </script>
 
 </body>
